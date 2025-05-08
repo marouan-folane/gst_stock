@@ -29,24 +29,42 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+        // Basic validation rules
+        $rules = [
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
             'phone_number' => 'nullable|string|max:20',
-            'current_password' => 'nullable|required_with:password|string',
-            'password' => 'nullable|string|min:8|confirmed',
-        ]);
+        ];
         
-        if ($request->filled('current_password')) {
+        // Only add password validation rules if the user is trying to change their password
+        if ($request->filled('password')) {
+            $rules['current_password'] = 'required|string';
+            $rules['password'] = 'required|string|min:8|confirmed';
+            
+            // Validate with password rules
+            $validated = $request->validate($rules);
+            
+            // Check if current password matches
             if (!Hash::check($request->current_password, $user->password)) {
                 return back()->withErrors(['current_password' => 'The provided password does not match your current password.']);
             }
             
+            // Update password
             $user->password = Hash::make($validated['password']);
+        } else {
+            // Validate without password rules
+            $validated = $request->validate($rules);
         }
         
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
+        // Only update fields if they were provided in the request
+        if ($request->filled('name')) {
+            $user->name = $validated['name'];
+        }
+        
+        if ($request->filled('email')) {
+            $user->email = $validated['email'];
+        }
+        
         $user->phone_number = $validated['phone_number'];
         $user->save();
         
@@ -64,11 +82,14 @@ class ProfileController extends Controller
         $user = Auth::user();
         
         $validated = $request->validate([
-            'receive_sms' => 'boolean',
+            'receive_sms' => 'sometimes|boolean',
         ]);
         
+        // Set receive_sms to false if not present in the request
+        $receiveSms = $request->has('receive_sms') ? (bool)$request->receive_sms : false;
+        
         // If user wants to receive SMS but hasn't provided a phone number
-        if ($validated['receive_sms'] && empty($user->phone_number)) {
+        if ($receiveSms && empty($user->phone_number)) {
             return back()->withErrors(['phone_number' => 'You must provide a phone number to receive SMS notifications.']);
         }
         

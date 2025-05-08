@@ -45,26 +45,26 @@ class CheckExpiringProducts extends Command
     {
         $days = $this->argument('days');
         $this->info("Checking for products expiring within $days days...");
-        
+
         // Get all products with expiry dates within the specified range
         $products = Product::whereNotNull('expiry_date')
             ->where('expiry_date', '>=', Carbon::now())
             ->where('expiry_date', '<=', Carbon::now()->addDays($days))
             ->where('current_stock', '>', 0)
             ->get();
-        
+
         $alertCount = 0;
-        
+
         foreach ($products as $product) {
             // Check if an alert already exists for this product's expiry
             $existingAlert = Alert::where('product_id', $product->id)
                 ->where('type', 'warning')
                 ->whereDate('created_at', Carbon::today())
                 ->first();
-            
+
             if (!$existingAlert) {
                 $daysRemaining = Carbon::now()->diffInDays(Carbon::parse($product->expiry_date));
-                
+
                 $alert = Alert::create([
                     'title' => 'Product Expiring Soon',
                     'message' => "Product {$product->name} (SKU: {$product->code}) will expire in {$daysRemaining} days.",
@@ -72,12 +72,12 @@ class CheckExpiringProducts extends Command
                     'product_id' => $product->id,
                     'is_read' => false,
                 ]);
-                
+
                 // Send SMS notifications to admin and manager users
                 $users = User::whereIn('role', ['admin', 'manager'])
                     ->whereNotNull('phone_number')
                     ->get();
-                
+
                 // If no users have phone numbers, create a default user with the default phone number
                 if ($users->isEmpty() && env('DEFAULT_SMS_RECIPIENT')) {
                     $defaultUser = new User();
@@ -85,17 +85,17 @@ class CheckExpiringProducts extends Command
                     $users = collect([$defaultUser]);
                     $this->line("No users with phone numbers found. Using default recipient: " . env('DEFAULT_SMS_RECIPIENT'));
                 }
-                
+
                 Notification::send($users, new StockAlertNotification($alert));
-                
+
                 $this->line("Alert created for {$product->name} - Expires in {$daysRemaining} days");
                 $this->line("SMS notification sent to " . $users->count() . " users via Twilio");
                 $alertCount++;
             }
         }
-        
+
         $this->info("Completed! $alertCount expiry alerts have been generated.");
-        
+
         return 0;
     }
 }

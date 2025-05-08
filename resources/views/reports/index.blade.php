@@ -161,7 +161,7 @@
                                         <a href="{{ $report->url }}" class="btn btn-sm btn-primary">
                                             <i class="fas fa-eye"></i> View
                                         </a>
-                                        <a href="{{ $report->url }}?pdf=1" class="btn btn-sm btn-secondary">
+                                        <a href="{{ $report->downloadUrl }}" class="btn btn-sm btn-secondary">
                                             <i class="fas fa-download"></i> Download
                                         </a>
                                     </td>

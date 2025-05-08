@@ -37,7 +37,14 @@ class StockAlertNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        return ['mail'];
+        $channels = ['mail'];
+        
+        // Add twilio channel if phone number exists
+        if (!empty($notifiable->phone_number)) {
+            $channels[] = 'twilio';
+        }
+        
+        return $channels;
     }
 
     /**
@@ -57,5 +64,23 @@ class StockAlertNotification extends Notification implements ShouldQueue
         }
 
         return $message->line('Thank you for using our inventory system.');
+    }
+
+    /**
+     * Get the Twilio representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toTwilio($notifiable)
+    {
+        $productInfo = '';
+        if ($this->alert->product_id && $this->alert->product) {
+            $productInfo = ' - Product: ' . $this->alert->product->name;
+        }
+        
+        return [
+            'content' => "[ALERT] " . $this->alert->title . ": " . $this->alert->message . $productInfo
+        ];
     }
 } 

@@ -43,7 +43,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    
+
     /**
      * Disable automatic password hashing
      *
@@ -53,5 +53,16 @@ class User extends Authenticatable
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = $value;
+    }
+
+    /**
+     * Route notifications for the Twilio channel.
+     *
+     * @param  \Illuminate\Notifications\Notification  $notification
+     * @return string
+     */
+    public function routeNotificationForTwilio($notification)
+    {
+        return $this->phone_number;
     }
 }

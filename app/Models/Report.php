@@ -37,4 +37,26 @@ class Report extends Model
     {
         return $this->belongsTo(User::class);
     }
+    
+    /**
+     * Get the URL for viewing the report.
+     *
+     * @return string
+     */
+    public function getUrlAttribute()
+    {
+        // Reconstruct the URL for the report based on type and parameters
+        $url = route('reports.generate', array_merge(['type' => $this->type], $this->parameters ?: []));
+        return $url;
+    }
+    
+    /**
+     * Get the download URL for the report.
+     *
+     * @return string
+     */
+    public function getDownloadUrlAttribute()
+    {
+        return route('reports.download', $this->id);
+    }
 } 

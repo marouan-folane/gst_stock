@@ -19,11 +19,27 @@
             <a href="{{ route('settings.notifications') }}" class="btn btn-primary btn-rounded">
                 <i class="fas fa-envelope fa-sm me-2"></i> Email Settings
             </a>
+            <a href="{{ route('alerts.test-emails') }}" class="btn btn-success btn-rounded">
+                <i class="fas fa-paper-plane fa-sm me-2"></i> Test Email Alerts
+            </a>
         </div>
         <form action="{{ route('alerts.mark-all-as-read') }}" method="POST" class="d-inline">
             @csrf
             <button type="submit" class="btn btn-secondary btn-rounded">
                 <i class="fas fa-check-double fa-sm me-2"></i> Mark All as Read
+            </button>
+        </form>
+        <form action="{{ route('alerts.delete-all') }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete all filtered alerts? This action cannot be undone.')">
+            @csrf
+            @method('DELETE')
+            @if(request('type'))
+                <input type="hidden" name="type" value="{{ request('type') }}">
+            @endif
+            @if(request('is_read') !== null)
+                <input type="hidden" name="is_read" value="{{ request('is_read') }}">
+            @endif
+            <button type="submit" class="btn btn-danger btn-rounded">
+                <i class="fas fa-trash-alt fa-sm me-2"></i> Delete All
             </button>
         </form>
     </div>
@@ -122,15 +138,23 @@
                         
                         <div class="ms-2 d-flex align-items-center">
                             @if(!$alert->is_read)
-                                <form action="{{ route('alerts.mark-as-read', $alert->id) }}" method="POST">
+                                <form action="{{ route('alerts.mark-as-read', $alert->id) }}" method="POST" class="me-2">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-success">
                                         <i class="fas fa-check"></i> Mark as Read
                                     </button>
                                 </form>
                             @else
-                                <span class="badge bg-secondary">Read</span>
+                                <span class="badge bg-secondary me-2">Read</span>
                             @endif
+                            
+                            <form action="{{ route('alerts.delete', $alert->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this alert?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 @endforeach

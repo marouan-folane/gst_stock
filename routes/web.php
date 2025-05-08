@@ -138,6 +138,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/alerts/check/expiring', [AlertController::class, 'checkExpiringProducts'])->name('alerts.check.expiring');
     Route::get('/alerts/check/low-stock', [AlertController::class, 'checkLowStockProducts'])->name('alerts.check.low-stock');
     Route::get('/alerts/check/out-of-stock', [AlertController::class, 'checkOutOfStockProducts'])->name('alerts.check.out-of-stock');
+    Route::delete('/alerts/{id}', [AlertController::class, 'delete'])->name('alerts.delete');
+    Route::delete('/alerts', [AlertController::class, 'deleteAll'])->name('alerts.delete-all');
+    Route::post('/alerts/delete-multiple', [AlertController::class, 'deleteMultiple'])->name('alerts.delete-multiple');
+    
+    // Test stock email alerts
+    Route::get('/alerts/test-emails', function() {
+        \Illuminate\Support\Facades\Artisan::call('alerts:send-emails');
+        return back()->with('success', 'Stock email alerts test has been initiated. Check your email inbox.');
+    })->name('alerts.test-emails');
 });
 
 Auth::routes();

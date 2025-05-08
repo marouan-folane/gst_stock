@@ -21,8 +21,13 @@ class Kernel extends ConsoleKernel
         // Check for low stock products daily at 9am
         $schedule->command('products:check-low-stock')->dailyAt('09:00');
         
-        // Check for sensible products and low stock products every hour
-        $schedule->command('check:sensible-products')->hourly();
+        // Check for sensible products and low stock products every 30 minutes
+        $schedule->command('check:sensible-products --force')
+                ->everyThirtyMinutes();
+        
+        // Send stock email alerts every 30 minutes using SMTP
+        $schedule->command('alerts:send-emails')
+                ->everyThirtyMinutes();
     }
 
     /**
@@ -47,5 +52,6 @@ class Kernel extends ConsoleKernel
         Commands\CheckLowStockProducts::class,
         Commands\TestTwilioNotification::class,
         Commands\CheckSensibleProducts::class,
+        Commands\SendStockEmailAlerts::class,
     ];
 }

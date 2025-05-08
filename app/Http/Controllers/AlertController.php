@@ -104,7 +104,7 @@ class AlertController extends Controller
         $users = User::whereIn('role', $roles)
             ->whereNotNull('email')
             ->get();
-        
+            
         // Add any additional email recipients
         $additionalEmails = $settings['additional_emails'] ?? '';
         if (!empty($additionalEmails)) {
@@ -266,5 +266,62 @@ class AlertController extends Controller
         }
         
         return back()->with('success', "{$alertCount} out of stock alerts have been generated.");
+    }
+
+    /**
+     * Delete an alert.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function delete($id)
+    {
+        $alert = Alert::findOrFail($id);
+        $alert->delete();
+        
+        return back()->with('success', 'Alert has been deleted');
+    }
+    
+    /**
+     * Delete multiple alerts.
+     *
+     * @param  Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteMultiple(Request $request)
+    {
+        $validated = $request->validate([
+            'alert_ids' => 'required|array',
+            'alert_ids.*' => 'exists:alerts,id',
+        ]);
+        
+        Alert::whereIn('id', $request->alert_ids)->delete();
+        
+        return back()->with('success', count($request->alert_ids) . ' alerts have been deleted');
+    }
+    
+    /**
+     * Delete all alerts.
+     *
+     * @param  Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAll(Request $request)
+    {
+        $query = Alert::query();
+        
+        // Apply filters if provided
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
+        
+        if ($request->has('is_read')) {
+            $query->where('is_read', $request->is_read);
+        }
+        
+        $count = $query->count();
+        $query->delete();
+        
+        return back()->with('success', $count . ' alerts have been deleted');
     }
 }

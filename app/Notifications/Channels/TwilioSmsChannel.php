@@ -44,14 +44,39 @@ class TwilioSmsChannel
     public function send($notifiable, Notification $notification)
     {
         if (! $to = $notifiable->routeNotificationFor('twilio', $notification)) {
-            return null;
+            // Use phone_number as fallback
+            $to = $notifiable->phone_number ?? null;
+            
+            if (!$to) {
+                return null;
+            }
         }
 
         $message = $notification->toTwilio($notifiable);
+        $content = is_string($message) ? $message : $message['content'];
 
-        return $this->client->messages->create($to, [
-            'from' => $this->from,
-            'body' => $message,
-        ]);
+        try {
+            $result = $this->client->messages->create($to, [
+                'from' => $this->from,
+                'body' => $content,
+            ]);
+            
+            // Log successful SMS
+            \Illuminate\Support\Facades\Log::info('SMS sent successfully via Twilio', [
+                'to' => $to,
+                'message_sid' => $result->sid,
+                'status' => $result->status,
+            ]);
+            
+            return $result;
+        } catch (\Exception $e) {
+            // Log error
+            \Illuminate\Support\Facades\Log::error('Failed to send SMS via Twilio', [
+                'to' => $to,
+                'error' => $e->getMessage()
+            ]);
+            
+            return null;
+        }
     }
 } 

@@ -25,7 +25,7 @@
                         <div class="mb-3 row">
                             <label for="name" class="col-md-4 col-form-label text-md-end">{{ __('Name') }}</label>
                             <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $user->name) }}" required autocomplete="name" autofocus>
+                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $user->name) }}" autocomplete="name" autofocus>
                                 @error('name')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -37,7 +37,7 @@
                         <div class="mb-3 row">
                             <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email">
+                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $user->email) }}" autocomplete="email">
                                 @error('email')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -61,6 +61,7 @@
 
                         <hr>
                         <h6 class="text-primary mb-3">Change Password (optional)</h6>
+                        <p class="small text-muted mb-3">Leave these fields blank if you don't want to change your password.</p>
 
                         <div class="mb-3 row">
                             <label for="current_password" class="col-md-4 col-form-label text-md-end">{{ __('Current Password') }}</label>
